@@ -2,8 +2,7 @@ import { Injectable } from '@angular/core';
 import { Usuario,Configuracion,Fundo,Cultivo,Acopio,Ceco,Labor, 
   Trabajador, Incidencia,IncidenciaPersona, TareoAsistencia,
   TrabajadorPlanilla,PlanillasAdicional,MotivoSalida,PersonaFlujoAprobacion,
-  BonosPersona,
-  Turno} from '../interfaces/Tables'
+  BonosPersona,Turno,Empresa} from '../interfaces/Tables'
 import Dexie from 'dexie';
 
 @Injectable({
@@ -11,8 +10,10 @@ import Dexie from 'dexie';
 })
 
 export class DexieService extends Dexie {
+
+  public configuracion!: Dexie.Table<Configuracion, string>;
   public usuario!: Dexie.Table<Usuario, number>;
-  public configuracion!: Dexie.Table<Configuracion, number>;
+  public empresas!: Dexie.Table<Empresa, number>;
   public fundos!: Dexie.Table<Fundo, number>;
   public cultivos!: Dexie.Table<Cultivo, number>;
   public turnos!: Dexie.Table<Turno, number>;
@@ -27,16 +28,15 @@ export class DexieService extends Dexie {
   public incidencias!: Dexie.Table<Incidencia, string>;
   public motivoSalida!: Dexie.Table<MotivoSalida, number>;
   public personaFlujo!: Dexie.Table<PersonaFlujoAprobacion, number>;
-  public bonosPersona!: Dexie.Table<BonosPersona, string>
+  public bonosPersona!: Dexie.Table<BonosPersona, string>;
   
   constructor() {
     super('Tareo');
     console.log('DexieService Constructor - Base de datos inicializada');
     this.version(1).stores({
+      configuracion: `id,idempresa,idsede,idcultivo`,
       usuario: `id,sociedad,ruc,razonSocial,idProyecto,proyecto,documentoIdentidad,usuario,
       clave,nombre,idrol,rol`,
-      configuracion: `id,idfundo,idcultivo,idacopio,fechatareo,idceco,idlabor,fechainiciorefrigerio,
-      horainiciorefrigerio,fechafinrefrigerio,horafinrefrigerio,horainiciojornada,idturno`,
       fundos: `id,codigoFundo,empresa,fundo,nombreFundo`,
       cultivos: `id,cultivo,codigo,descripcion,empresa`,
       turnos: 'id,codTurno,turno,nombreTurno,modulo',
@@ -77,10 +77,22 @@ export class DexieService extends Dexie {
     this.bonosPersona = this.table('bonosPersona')
   }
 
+  //
+  async saveConfiguracion(configuracion: Configuracion) { await this.configuracion.put(configuracion); }
+  async obtenerConfiguracion() {return await this.configuracion.toArray();} 
+  async obtenerPrimeraConfiguracion() { return await this.configuracion.toCollection().first(); }
+  async clearConfiguracion() {await this.configuracion.clear();}
+  //
+  async saveEmpresa(empresa: Empresa) {await this.empresas.put(empresa);}
+  async saveEmpresas(empresas: Empresa[]) {await this.empresas.bulkPut(empresas);}
+  async showEmpresas() {return await this.empresas.orderBy('razonsocial').toArray();}
+  async showEmpresaById(id: number) {return await this.empresas.where('id').equals(id).first()}
+  async clearEmpresas() {await this.empresas.clear();}
+  //
   async saveUsuario(usuario: Usuario) {await this.usuario.put(usuario);}
   async showUsuario() {return await this.usuario.toCollection().first()}
   async clearUsuario() {await this.usuario.clear();}
-
+  //
   async saveFundo(fundo: Fundo) {await this.fundos.put(fundo);}
   async saveFundos(fundos: Fundo[]) {await this.fundos.bulkPut(fundos);}
   async showFundos() {return await this.fundos.toArray();}
@@ -127,7 +139,6 @@ export class DexieService extends Dexie {
   async saveTareos(params: TareoAsistencia[]) { await this.tareoAsistencia.bulkPut(params); }
   async saveTareo(params: TareoAsistencia) { await this.tareoAsistencia.put(params); }
   async showTareosById(id: any) { return await this.tareoAsistencia.where('idtareo_asistencia').equals(id).first(); }
-  // async updateTareoEnviado(id: any, enviado: number) { await this.tareoAsistencia.update(id, { estado : enviado }) }
   async showTareos() { return await this.tareoAsistencia.toArray(); }
   //
   async savePlanillaAdicionales(params: PlanillasAdicional[]) { await this.planillasAdicional.bulkPut(params); }
@@ -197,9 +208,5 @@ export class DexieService extends Dexie {
     await this.clearTrabajadoresPlanilla()
     console.log('Todas los datos sincronizados han sido limpiadas en indexedDB.');
   }
-  //
-  async saveConfiguracion(configuracion: Configuracion) { await this.configuracion.put(configuracion); }
-  async obtenerConfiguracion() {return await this.configuracion.toArray();} 
-  async clearConfiguracion() {await this.configuracion.clear();}
 
 }

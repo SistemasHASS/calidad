@@ -1,34 +1,32 @@
 
 export interface Usuario {
+    documentoidentidad: string;
     id: string;
-    sociedad: number;
-    ruc: string;
-    razonSocial: string;
-    idProyecto: string;
-    proyecto: string;
-    documentoIdentidad: string;
-    usuario: string;
-    clave: string;
-    nombre: string;
+    idproyecto: string;
     idrol: string;
+    nombre: string;
+    proyecto: string;
+    razonSocial: string;
     rol: string;
+    ruc: string;
+    sociedad: number;
+    usuario: string;
+    idempresa: string;
 }
 
 export interface Configuracion {
-    id: string
-    idfundo: number
-    idcultivo: number
-    idacopio: number
-    fechatareo: string
-    idceco: string
-    idlabor: string
-    fechainiciorefrigerio: string
-    horainiciorefrigerio: string
-    fechafinrefrigerio: string
-    horafinrefrigerio: string
-    horainiciojornada: string
-    fecha_compensa: string
-    idturno: string
+    id: string;
+    idempresa: string;
+    idfundo: string;
+    idcultivo: string;
+}
+
+export interface Empresa {
+    id: string;
+    idempresa: string;
+    ruc: string;
+    razonsocial: string;
+    empresa: number;
 }
 
 export interface Fundo {
