@@ -56,6 +56,7 @@ export class ParametrosComponent {
   async ngOnInit() {
     await this.getUsuario()
     await this.validarExisteConfiguracion()
+    await this.llenarDropdowns();
   }
 
   async getUsuario() {
@@ -67,14 +68,13 @@ export class ParametrosComponent {
     const configuracion = await this.dexieService.obtenerPrimeraConfiguracion();
     if(configuracion) {
       this.configuracion = configuracion;
-      await this.llenarDropdowns();
     }
   }
 
   async llenarDropdowns() {
-    this.empresas = await this.dexieService.showEmpresas();
-    this.sedes = await this.dexieService.showFundos();
-    this.cultivos = await this.dexieService.showCultivos();
+    await this.ListarEmpresas();
+    await this.ListarFundos();
+    await this.ListarCultivos();
   }
 
   async sincronizarTablasMaestras() {
@@ -84,15 +84,16 @@ export class ParametrosComponent {
       if(!!empresas && empresas.length) { 
         await this.dexieService.saveEmpresas(empresas)
         await this.ListarEmpresas()
+        this.alertService.cerrarModalCarga()
       }
 
       const fundos = this.maestrasService.getFundos([{ idempresa: this.usuario.idempresa }])
       fundos.subscribe(async (resp: any) => {
-        if(!!resp && resp.length) {
+        if (!!resp && resp.length) {
           await this.dexieService.saveFundos(resp);
           await this.ListarFundos();
         }
-      });
+      })
 
       const cultivos = this.maestrasService.getCultivos([{idempresa: this.usuario?.idempresa}])
       cultivos.subscribe(async (resp: any) => {
@@ -110,7 +111,7 @@ export class ParametrosComponent {
       });
     } catch (error: any) {
       console.error(error);
-      this.alertService.showAlert('Error!', '<p>Ocurrio un error</p><p>' + error + '</p>', 'error');
+      this.alertService.showAlert('Error!', '<p>Ocurrio un error</p><p>', 'error');
     }
   }
 
@@ -119,12 +120,21 @@ export class ParametrosComponent {
     this.configuracion.idempresa = this.empresas.find((empresa: any) => empresa.ruc === this.usuario.ruc)?.ruc || '';
   }
   async ListarFundos() { 
-    this.sedes = await this.dexieService.showFundos(); 
-    if(this.sedes.length == 1){
-      this.configuracion.idfundo = this.sedes[0].codigoFundo;
+    const fundos = await this.dexieService.showFundos(); 
+    const empresa = this.empresas.find((empresa: any) => empresa.ruc === this.usuario.ruc);
+    this.fundos = fundos.filter((fundo: any) => fundo.empresa === empresa.empresa);
+    if(this.fundos.length == 1){
+      this.configuracion.idfundo = this.fundos[0].codigoFundo;
     } 
   }
-  async ListarCultivos() { this.cultivos = await this.dexieService.showCultivos(); }
+  async ListarCultivos() { 
+    const cultivos = await this.dexieService.showCultivos(); 
+    const empresa = this.empresas.find((empresa: any) => empresa.ruc === this.usuario.ruc);
+    this.cultivos = cultivos.filter((cultivo: any) => cultivo.empresa === empresa.empresa);
+    if(this.cultivos.length == 1) {
+      this.configuracion.idcultivo = this.cultivos[0].codigo;
+    } 
+  }
   
   async guardarConfiguracion() {
     this.showValidation = true;

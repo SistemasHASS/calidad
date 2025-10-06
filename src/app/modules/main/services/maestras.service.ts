@@ -23,19 +23,19 @@ export class MaestrasService {
     }
   }
 
-  getFundos(sociedad: any): Observable<any> {
-    const url = `${this.baseUrl}/maestras/fundos/${sociedad}`;
+  getFundos(body: any): Observable<any> {
+    const url = `${this.apiMaestra}/api/Maestros/get-fundos`;
     try {
-      return this.http.get<any>(url);
+      return this.http.post<any>(url,body);
     } catch (error: any) {
       throw new Error(error.error?.message || 'Error obteniendo fundos');
     }
   }
 
-  getCultivos(sociedad: any): Observable<any> {
-    const url = `${this.baseUrl}/maestras/cultivos/${sociedad}`;
+  getCultivos(body: any): Observable<any> {
+    const url = `${this.apiMaestra}/api/Maestros/get-cultivos`;
     try {
-      return this.http.get<any>(url);
+      return this.http.post<any>(url,body);
     } catch (error: any) {
       throw new Error(error.error?.message || 'Error obteniendo cultivos');
     }

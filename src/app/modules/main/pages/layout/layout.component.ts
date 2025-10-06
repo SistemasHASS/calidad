@@ -41,38 +41,11 @@ export class LayoutComponent {
     this.usuario = await this.dexieService.showUsuario()
   }
   async logout() {
-    const sinenviar = await this.dexieService.showTrabajadoresPlanillaSinEnviar()
-    if(sinenviar.length > 0) {
-      Swal.fire({
-        title: 'Alerta!',
-        text: 'Por favor cierre toda su planilla y sincronice',
-        icon: 'info',
-        showConfirmButton: false,
-        timer: 2000
-      })
-    } else {
-      Swal.fire({
-        title: '¿Estás seguro?',
-        text: 'Confirma que desea cerrar sesión',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, deseo salir',
-        cancelButtonText: 'Cancelar',
-        customClass: {
-          confirmButton: 'btn btn-primary',
-          cancelButton: 'btn btn-warning'
-        },
-        buttonsStyling: false // para aplicar tus propias clases
-      }).then((result) => {
-        if (result.isConfirmed) {
-          this.router.navigate(['auth/login']);
-          localStorage.clear()
-          this.dexieService.clearConfiguracion();
-          this.dexieService.clearUsuario();
-          this.dexieService.clearMaestras();
-          this.dexieService.clearDatosEnviados();
-        }
-      });
+    const result = await this.alertService.showConfirm('¿Estás seguro?','Confirma que desea cerrar sesión','warning')
+    if(result) {
+      localStorage.clear()
+      await this.dexieService.clearMaestras()
+      this.router.navigate(['auth/login']);
     }
   }
 
@@ -129,14 +102,8 @@ export class LayoutComponent {
     const currentUrl = this.router.url.split('/').filter(Boolean);
     const pathMap: { [key: string]: string } = {
       'parametros': 'Parámetros',
-      'configuracionaprobaciones': 'Roles de aprobación',
-      'mantenedorincidencias': 'Mantenedor incidencias',
-      'planillas' : 'Planillas',
-      'reportes': 'Asistencias',
-      'adicional': 'Planilla adicional',
-      'incidencias': 'Incidencias',
-      'bonos': 'Bonos',
-      'aprobaciones': 'Aprobaciones'
+      'calidad-campo': 'Calidad Campo',
+      'calidad-planta': 'Calidad Planta'
     };
     
     this.currentPath = pathMap[currentUrl[currentUrl.length - 1]] || '';

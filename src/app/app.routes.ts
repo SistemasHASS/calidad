@@ -3,6 +3,8 @@ import { Error404PageComponent } from './shared/pages/error404-page/error404-pag
 import { LayoutComponent } from './modules/main/pages/layout/layout.component';
 import { ParametrosComponent } from './modules/main/pages/parametros/parametros.component';
 import { AuthGuard } from './modules/auth/guard/auth.guard';
+import { CalidadCampoComponent } from './modules/main/pages/calidad-campo/calidad-campo.component';
+import { CalidadPlantaComponent } from './modules/main/pages/calidad-planta/calidad-planta.component';
 
 export const routes: Routes = [
   {
@@ -23,6 +25,8 @@ export const routes: Routes = [
     component: LayoutComponent,
     children: [
       { path: 'parametros', component: ParametrosComponent },
+      { path: 'calidad-campo', component: CalidadCampoComponent },
+      { path: 'calidad-planta', component: CalidadPlantaComponent },
       { path: '**', redirectTo: 'auth/login' },
     ],
     canActivate: [AuthGuard]
