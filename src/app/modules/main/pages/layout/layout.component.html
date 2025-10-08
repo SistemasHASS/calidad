@@ -59,6 +59,14 @@
               <span class="hide-menu"> Calidad en planta</span>
             </a>
           </li>
+          <li *ngIf="usuario?.idrol.includes('TI') || usuario?.idrol.includes('SUTAR') || usuario?.idrol.includes('ADTAR') || usuario?.idrol.includes('GETAR')" class="sidebar-item" (click)="toggleSidebar()">
+            <a routerLink="./calidad-aseguramiento" routerLinkActive="active" class="sidebar-link" aria-expanded="false">
+              <span>
+                <i class='icon icon-profile'></i>
+              </span>
+              <span class="hide-menu"> Calidad en aseguramiento</span>
+            </a>
+          </li>
           <li class="nav-small-cap">
             <i class="ti ti-dots nav-small-cap-icon fs-6"></i>
             <span class="hide-menu"> Reportes</span>

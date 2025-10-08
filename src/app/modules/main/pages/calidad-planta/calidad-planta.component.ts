@@ -10,13 +10,12 @@ import { NotaPersona, Evaluaciones } from '@/app/shared/interfaces/Tables';
 import { Modal } from 'bootstrap';
 
 @Component({
-  selector: 'app-calidad-campo',
+  selector: 'app-calidad-planta',
   imports: [CommonModule, FormsModule, TableModule],
-  templateUrl: './calidad-campo.component.html',
-  styleUrl: './calidad-campo.component.scss'
+  templateUrl: './calidad-planta.component.html',
+  styleUrl: './calidad-planta.component.scss'
 })
-export class CalidadCampoComponent {
-
+export class CalidadPlantaComponent {
   @ViewChild('modalNota') modalNota!: ElementRef;
   modalNotaInstance!: Modal;
   @ViewChild('dniInput') dniInputRef!: ElementRef<HTMLInputElement>;
@@ -266,5 +265,4 @@ export class CalidadCampoComponent {
   detectarDia(fecha: string) {
     return this.utilsService.formatoNombreDia(fecha);
   }
-  
 }

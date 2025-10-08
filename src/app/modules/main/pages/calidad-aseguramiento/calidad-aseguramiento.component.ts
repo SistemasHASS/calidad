@@ -9,14 +9,15 @@ import { CalidadService } from '../../services/calidad.service';
 import { NotaPersona, Evaluaciones } from '@/app/shared/interfaces/Tables';
 import { Modal } from 'bootstrap';
 
-@Component({
-  selector: 'app-calidad-campo',
-  imports: [CommonModule, FormsModule, TableModule],
-  templateUrl: './calidad-campo.component.html',
-  styleUrl: './calidad-campo.component.scss'
-})
-export class CalidadCampoComponent {
 
+@Component({
+  selector: 'app-calidad-aseguramiento',
+  imports: [CommonModule, FormsModule, TableModule],
+  templateUrl: './calidad-aseguramiento.component.html',
+  styleUrl: './calidad-aseguramiento.component.scss'
+})
+export class CalidadAseguramientoComponent {
+  
   @ViewChild('modalNota') modalNota!: ElementRef;
   modalNotaInstance!: Modal;
   @ViewChild('dniInput') dniInputRef!: ElementRef<HTMLInputElement>;
@@ -266,5 +267,4 @@ export class CalidadCampoComponent {
   detectarDia(fecha: string) {
     return this.utilsService.formatoNombreDia(fecha);
   }
-  
 }

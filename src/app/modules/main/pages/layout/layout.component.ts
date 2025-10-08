@@ -103,7 +103,8 @@ export class LayoutComponent {
     const pathMap: { [key: string]: string } = {
       'parametros': 'Parámetros',
       'calidad-campo': 'Calidad Campo',
-      'calidad-planta': 'Calidad Planta'
+      'calidad-planta': 'Calidad Planta',
+      'calidad-aseguramiento': 'Calidad Aseguramiento'
     };
     
     this.currentPath = pathMap[currentUrl[currentUrl.length - 1]] || '';
