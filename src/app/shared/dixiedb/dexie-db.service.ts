@@ -28,7 +28,7 @@ export class DexieService extends Dexie {
       cultivos: `id,cultivo,codigo,descripcion,empresa`,
       trabajadores: `id,ruc,nrodocumento,nombres,apellidopaterno,apellidomaterno,estado,motivo,
       bloqueado,eliminado,idmotivo,motivosalida`,
-      evaluaciones: `id,idevaluacion,ruc,fecha,dni,nota,evaluador,idrol,detalle`,
+      evaluaciones: `idevaluacion,ruc,dni,nombre,promedio,notas`,
     });
 
     this.usuario = this.table('usuario');
@@ -76,6 +76,7 @@ export class DexieService extends Dexie {
   async clearTrabajadores() {await this.trabajadores.clear();}
   //
   async saveEvaluaciones(evaluaciones: Evaluaciones[]) {await this.evaluaciones.bulkPut(evaluaciones);}
+  async saveEvaluacion(evaluacion: Evaluaciones) {await this.evaluaciones.put(evaluacion);}
   async showEvaluaciones() {return await this.evaluaciones.toArray();}
   async showEvaluacionById(id: string) {return await this.evaluaciones.where('id').equals(id).first()}
   async clearEvaluaciones() {await this.evaluaciones.clear();}

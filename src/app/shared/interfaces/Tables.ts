@@ -52,8 +52,15 @@ export interface Trabajador {
     idmotivo: number
     motivosalida: number
 }
-
 export interface Evaluaciones {
+    idevaluacion: string;
+    ruc: string;
+    dni: string;
+    nombre: string;
+    promedio: number;
+    detalle: NotaPersona[];
+}
+export interface NotaPersona {
     idevaluacion: string;
     ruc: string;
     fecha: string;
@@ -61,11 +68,5 @@ export interface Evaluaciones {
     nota: number;
     evaluador: string;
     idrol: string;
-    detalle: DetalleEvaluacion[]
-}
-
-export interface DetalleEvaluacion {
-    dia: string;
-    fecha: string;
-    nota: number;
+    estado: number;
 }

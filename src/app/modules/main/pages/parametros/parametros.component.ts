@@ -8,6 +8,7 @@ import { UtilsService } from '@/app/shared/utils/utils.service';
 import { AlertService } from '@/app/shared/alertas/alerts.service';
 import { Usuario } from '@/app/shared/interfaces/Tables';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { CalidadService } from '../../services/calidad.service';
 
 @Component({
   selector: 'app-parametros',
@@ -22,7 +23,8 @@ export class ParametrosComponent {
     private dexieService: DexieService,
     private maestrasService: MaestrasService,
     private utilsService: UtilsService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private calidadService: CalidadService
   ) {}
 
   configuracion: Configuracion = {
@@ -84,7 +86,6 @@ export class ParametrosComponent {
       if(!!empresas && empresas.length) { 
         await this.dexieService.saveEmpresas(empresas)
         await this.ListarEmpresas()
-        this.alertService.cerrarModalCarga()
       }
 
       const fundos = this.maestrasService.getFundos([{ idempresa: this.usuario.idempresa }])
@@ -92,6 +93,8 @@ export class ParametrosComponent {
         if (!!resp && resp.length) {
           await this.dexieService.saveFundos(resp);
           await this.ListarFundos();
+          this.alertService.cerrarModalCarga()
+          this.alertService.showAlert('Exito!', 'Sincronizado con exito', 'success');
         }
       })
 
@@ -109,6 +112,13 @@ export class ParametrosComponent {
           await this.dexieService.saveTrabajadores(resp)
         }
       });
+
+      const notas = this.calidadService.getNotasCampo([{ ruc: this.usuario.ruc, idrol: this.usuario.idrol.includes('SUCAL') ? 'SUCAL' : 'ADCAL' }])
+      notas.subscribe(async (resp: any) => {
+        if(!!resp && resp.length) {
+          await this.dexieService.saveEvaluaciones(resp)
+        }
+      });
     } catch (error: any) {
       console.error(error);
       this.alertService.showAlert('Error!', '<p>Ocurrio un error</p><p>', 'error');
@@ -119,6 +129,7 @@ export class ParametrosComponent {
     this.empresas = await this.dexieService.showEmpresas();
     this.configuracion.idempresa = this.empresas.find((empresa: any) => empresa.ruc === this.usuario.ruc)?.ruc || '';
   }
+
   async ListarFundos() { 
     const fundos = await this.dexieService.showFundos(); 
     const empresa = this.empresas.find((empresa: any) => empresa.ruc === this.usuario.ruc);
@@ -127,6 +138,7 @@ export class ParametrosComponent {
       this.configuracion.idfundo = this.fundos[0].codigoFundo;
     } 
   }
+  
   async ListarCultivos() { 
     const cultivos = await this.dexieService.showCultivos(); 
     const empresa = this.empresas.find((empresa: any) => empresa.ruc === this.usuario.ruc);

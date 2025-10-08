@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import moment from 'moment';
+import 'moment/locale/es';
 
 @Injectable({
   providedIn: 'root'
@@ -61,6 +62,12 @@ export class UtilsService {
 
   bajarLetras(text: string): string {
     return text.toLowerCase(); 
+  }
+
+  formatoNombreDia(date: any) {
+    if (!date) return '';
+    moment.locale('es');
+    return moment(date, 'YYYY-MM-DD', true).local().format('dddd');
   }
 
 }
