@@ -84,10 +84,18 @@ export class ReporteSemanalComponent {
     return [{
       ruc: this.usuario.ruc,
       nrodocumento: this.usuario.documentoidentidad,
-      idrol: this.usuario.idrol,
+      idrol: this.obtenerRol(),
       desde: this.formatDateViaje(this.fdesde),
       hasta: this.formatDateViaje(this.fhasta)
     }]
+  }
+
+  obtenerRol() {
+    if(this.usuario.idrol.includes('SUCAL')) return 'SUCAL'
+    if(this.usuario.idrol.includes('PLCAL')) return 'PLCAL'
+    if(this.usuario.idrol.includes('ASCAL')) return 'ASCAL'
+    if(this.usuario.idrol.includes('ADCAL')) return 'ADCAL'
+    return ''
   }
 
   get reportesKeys(): string[] {

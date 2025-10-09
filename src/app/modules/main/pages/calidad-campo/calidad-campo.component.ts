@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild,ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, ViewChild,ChangeDetectorRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -8,6 +8,7 @@ import { UtilsService } from '@/app/shared/utils/utils.service';
 import { CalidadService } from '../../services/calidad.service';
 import { NotaPersona, Evaluaciones } from '@/app/shared/interfaces/Tables';
 import { Modal } from 'bootstrap';
+import { BrowserQRCodeReader } from '@zxing/library';
 
 @Component({
   selector: 'app-calidad-campo',
@@ -16,10 +17,15 @@ import { Modal } from 'bootstrap';
   styleUrl: './calidad-campo.component.scss'
 })
 export class CalidadCampoComponent {
-
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('beepSound') beepSound!: ElementRef<HTMLAudioElement>;
   @ViewChild('modalNota') modalNota!: ElementRef;
   modalNotaInstance!: Modal;
   @ViewChild('dniInput') dniInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('modalScanner') modalScanner!: ElementRef;
+  modalScannerInstance!: Modal;
+
+  @Input() enableScanner: boolean = false;
 
   usuario: any;
   activeSection: number | null = 1;
@@ -50,6 +56,13 @@ export class CalidadCampoComponent {
     detalle: []
   }
 
+  // scannerControls: IScannerControls | null = null;
+  qrCodeReader = new BrowserQRCodeReader();
+  qrResult: string = '';
+  lastResult: string = '';
+  cameraError = false;
+  cameraStream: MediaStream | null = null;
+
   constructor(
     private utilsService: UtilsService,
     private dexieService: DexieService,
@@ -60,6 +73,7 @@ export class CalidadCampoComponent {
 
   ngAfterViewInit() {
     this.modalNotaInstance = new Modal(this.modalNota.nativeElement);
+    this.modalScannerInstance = new Modal(this.modalScanner.nativeElement);
   }
 
   async ngOnInit() {
@@ -265,6 +279,100 @@ export class CalidadCampoComponent {
 
   detectarDia(fecha: string) {
     return this.utilsService.formatoNombreDia(fecha);
+  }
+
+  abrirModal() {
+    this.modalScannerInstance.show();
+    this.startCamera();
+  }
+
+  async startCamera() {
+    try {
+      if (this.cameraStream) {
+        this.stopCamera();
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      this.cameraStream = stream;
+      const video = this.videoElement.nativeElement;
+
+      if (video.srcObject !== stream) {
+        video.srcObject = stream;
+      }
+      await video.play();
+
+      this.scanQRCode();
+    } catch (err) {
+      console.error('Error accediendo a la cámara:', err);
+      this.cameraError = true;
+    }
+  }
+
+  async scanQRCode() {
+    try {
+      await this.qrCodeReader.decodeFromVideoDevice(
+        '',
+        this.videoElement.nativeElement,
+        (result: any, err: any) => {
+          if (result) {
+            this.playBeep();
+            this.onCodeResult(result.text);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error iniciando el scanner:', error);
+    }
+  }
+
+  async onCodeResult(result: any ='') {
+    const { dniExtraido, mensaje } = this.validarQrDni(result);
+    if(dniExtraido) {
+      this.search = dniExtraido
+      await this.buscarPersona(false)
+    } else {
+      this.alertService.showAlertAcept('Alerta', 'Ocurrio un error: ['+mensaje+']','warning');
+    }
+    this.closeModalCamara();
+  }
+
+  closeModalCamara(): void {
+    this.stopCamera();
+    this.modalScannerInstance.hide();
+  }
+
+  validarQrDni(resultado: any): { dniExtraido: string | null, mensaje: string } {
+    const texto = resultado?.toString().trim() ?? '';
+    const indiceD = texto.indexOf('D');
+    const indiceC = texto.indexOf('C');
+
+    if (indiceD === -1 || indiceC === -1 || indiceC < indiceD) {
+      return { dniExtraido: null, mensaje: 'estructura qr no valida' };
+    }
+  
+    const dniExtraido = texto.substring(indiceD + 1, indiceC).trim();
+    return { dniExtraido, mensaje: dniExtraido || 'estructura qr no valida' };
+  }
+  
+
+  stopCamera() {
+    this.qrCodeReader.reset();
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(track => track.stop());
+      this.cameraStream = null;
+    }
+    const video = this.videoElement.nativeElement;
+    video.pause();
+    video.srcObject = null;
+  }
+
+  playBeep() {
+    const beep = this.beepSound.nativeElement;
+    beep.currentTime = 0;
+    beep.play();
   }
   
 }

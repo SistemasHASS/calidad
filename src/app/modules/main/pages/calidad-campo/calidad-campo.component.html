@@ -24,7 +24,7 @@
           <button type="button" (click)="buscarPersona(true)" class="btn btn-primary align-self-end" [disabled]="search==''">
             <i class='icon icon-search4'></i>
           </button>
-          <button type="button" (click)="agregarPersona(true)" class="btn btn-info align-self-end" [disabled]="search==''">
+          <button type="button" (click)="abrirModal()" class="btn btn-info align-self-end">
             <i class='icon icon-camera'></i>
           </button>
         </div>
@@ -128,6 +128,30 @@
         </button>
         <button type="button" class="btn btn-success btn-sm px-3" (click)="guardarNota()">
           <i class="bi bi-check2-circle me-1"></i> Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal Scanner -->
+<div class="modal fade" #modalScanner>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-body p-0">
+        <video
+          #videoElement
+          class="w-100"
+          style="height: auto; object-fit: cover;"
+          autoplay
+          playsinline></video>
+        <audio #beepSound src="assets/videos/beep.wav"></audio>
+        <div *ngIf="cameraError" class="alert alert-danger">
+            No se puede acceder a la cámara.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button (click)="closeModalCamara()" type="button" class="btn btn-danger">
+            Cancelar <i class="icon-close ml-2"></i>
         </button>
       </div>
     </div>
