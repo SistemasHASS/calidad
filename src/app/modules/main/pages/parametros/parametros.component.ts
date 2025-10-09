@@ -113,7 +113,7 @@ export class ParametrosComponent {
         }
       });
 
-      const notas = this.calidadService.getNotasCampo([{ ruc: this.usuario.ruc, idrol: this.usuario.idrol.includes('SUCAL') ? 'SUCAL' : 'ADCAL' }])
+      const notas = this.calidadService.getNotasCampo([{ ruc: this.usuario.ruc, idrol: this.obtenerRol() }])
       notas.subscribe(async (resp: any) => {
         if(!!resp && resp.length) {
           await this.dexieService.saveEvaluaciones(resp)
@@ -123,6 +123,14 @@ export class ParametrosComponent {
       console.error(error);
       this.alertService.showAlert('Error!', '<p>Ocurrio un error</p><p>', 'error');
     }
+  }
+
+  obtenerRol() {
+    if(this.usuario.idrol.includes('SUCAL')) return 'SUCAL'
+    if(this.usuario.idrol.includes('ASCAL')) return 'ASCAL'
+    if(this.usuario.idrol.includes('PLCAL')) return 'PLCAL'
+    if(this.usuario.idrol.includes('ADCAL')) return 'ADCAL'
+    return ''
   }
 
   async ListarEmpresas() { 

@@ -41,7 +41,7 @@ export class CalidadPlantaComponent {
   }
 
   evaluacion: Evaluaciones = {
-    idevaluacion: '',
+    id: '',
     ruc: '',
     dni: '',
     nombre: '',
@@ -115,7 +115,7 @@ export class CalidadPlantaComponent {
 
   clearEvaluacion() {
     this.evaluacion = {
-      idevaluacion: '',
+      id: '',
       ruc: '',
       dni: '',
       nombre: '',
@@ -139,7 +139,7 @@ export class CalidadPlantaComponent {
       this.evaluacion = evaluacion
     } else {
       this.evaluacion = {
-        idevaluacion: t.ruc+t.nrodocumento,
+        id: t.ruc+t.nrodocumento,
         ruc: t.ruc,
         dni: t.nrodocumento,
         nombre: t.nombre,

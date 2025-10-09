@@ -53,7 +53,7 @@ export interface Trabajador {
     motivosalida: number
 }
 export interface Evaluaciones {
-    idevaluacion: string;
+    id: string;
     ruc: string;
     dni: string;
     nombre: string;

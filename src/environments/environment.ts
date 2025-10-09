@@ -1,5 +1,5 @@
 export const environment = {
     production: true,
-    baseUrl:'https://localhost:7140',
+    baseUrl:'https://calidad.agroapps.net:7510',
     apiMaestra: 'https://apimaestra.agroapps.net:7003'
 }

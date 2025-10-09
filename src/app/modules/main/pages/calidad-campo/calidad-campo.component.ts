@@ -42,7 +42,7 @@ export class CalidadCampoComponent {
   }
 
   evaluacion: Evaluaciones = {
-    idevaluacion: '',
+    id: '',
     ruc: '',
     dni: '',
     nombre: '',
@@ -116,7 +116,7 @@ export class CalidadCampoComponent {
 
   clearEvaluacion() {
     this.evaluacion = {
-      idevaluacion: '',
+      id: '',
       ruc: '',
       dni: '',
       nombre: '',
@@ -140,7 +140,7 @@ export class CalidadCampoComponent {
       this.evaluacion = evaluacion
     } else {
       this.evaluacion = {
-        idevaluacion: t.ruc+t.nrodocumento,
+        id: t.ruc+t.nrodocumento,
         ruc: t.ruc,
         dni: t.nrodocumento,
         nombre: t.nombre,
@@ -188,7 +188,7 @@ export class CalidadCampoComponent {
         idrol: item.idrol
       }
     })
-    return notas
+    return notas.filter((item:any)=> item.estado == 0)
   }
 
   toggleSection(section: number) {

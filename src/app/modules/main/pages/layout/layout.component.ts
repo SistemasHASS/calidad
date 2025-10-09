@@ -104,7 +104,8 @@ export class LayoutComponent {
       'parametros': 'Parámetros',
       'calidad-campo': 'Calidad Campo',
       'calidad-planta': 'Calidad Planta',
-      'calidad-aseguramiento': 'Calidad Aseguramiento'
+      'calidad-aseguramiento': 'Calidad Aseguramiento',
+      'reporte-calidad': 'Reporte Calidad'
     };
     
     this.currentPath = pathMap[currentUrl[currentUrl.length - 1]] || '';

@@ -28,7 +28,7 @@ export class DexieService extends Dexie {
       cultivos: `id,cultivo,codigo,descripcion,empresa`,
       trabajadores: `id,ruc,nrodocumento,nombres,apellidopaterno,apellidomaterno,estado,motivo,
       bloqueado,eliminado,idmotivo,motivosalida`,
-      evaluaciones: `idevaluacion,ruc,dni,nombre,promedio,notas`,
+      evaluaciones: `id,ruc,dni,nombre,promedio,detalle`,
     });
 
     this.usuario = this.table('usuario');

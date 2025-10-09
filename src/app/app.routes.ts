@@ -6,6 +6,7 @@ import { AuthGuard } from './modules/auth/guard/auth.guard';
 import { CalidadCampoComponent } from './modules/main/pages/calidad-campo/calidad-campo.component';
 import { CalidadPlantaComponent } from './modules/main/pages/calidad-planta/calidad-planta.component';
 import { CalidadAseguramientoComponent } from './modules/main/pages/calidad-aseguramiento/calidad-aseguramiento.component';
+import { ReporteSemanalComponent } from './modules/main/pages/reporte-semanal/reporte-semanal.component';
 
 export const routes: Routes = [
   {
@@ -29,6 +30,7 @@ export const routes: Routes = [
       { path: 'calidad-campo', component: CalidadCampoComponent },
       { path: 'calidad-planta', component: CalidadPlantaComponent },
       { path: 'calidad-aseguramiento', component: CalidadAseguramientoComponent },
+      { path: 'reporte-calidad', component: ReporteSemanalComponent },
       { path: '**', redirectTo: 'auth/login' },
     ],
     canActivate: [AuthGuard]
