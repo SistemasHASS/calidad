@@ -56,7 +56,7 @@ export interface Evaluaciones {
     id: string;
     ruc: string;
     dni: string;
-    nombre: string;
+    cosechador: string;
     promedio: number;
     detalle: NotaPersona[];
 }

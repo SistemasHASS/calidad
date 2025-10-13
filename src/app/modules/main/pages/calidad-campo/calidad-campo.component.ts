@@ -51,7 +51,7 @@ export class CalidadCampoComponent {
     id: '',
     ruc: '',
     dni: '',
-    nombre: '',
+    cosechador: '',
     promedio: 0,
     detalle: []
   }
@@ -133,7 +133,7 @@ export class CalidadCampoComponent {
       id: '',
       ruc: '',
       dni: '',
-      nombre: '',
+      cosechador: '',
       promedio: 0,
       detalle: []
     }
@@ -157,7 +157,7 @@ export class CalidadCampoComponent {
         id: t.ruc+t.nrodocumento,
         ruc: t.ruc,
         dni: t.nrodocumento,
-        nombre: t.nombre,
+        cosechador: t.nombre,
         promedio: 0,
         detalle: []
       }
