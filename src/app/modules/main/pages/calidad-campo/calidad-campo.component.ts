@@ -176,6 +176,7 @@ export class CalidadCampoComponent {
     const confirmacion = await this.alertService.showConfirm('Confirmación', '¿Desea enviar los datos?', 'warning');
     if(confirmacion) {
       const formatoNotas = this.formatoNotasEvaluacion()
+      console.log('notas: ', formatoNotas)
       this.calidadService.registrarNota(formatoNotas).subscribe((res:any)=> {
         if(res[0].errorgeneral == 0) {
           for(let i = 0; i < this.evaluacion.detalle.length; i++) {
