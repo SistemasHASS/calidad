@@ -37,7 +37,16 @@ export class CalidadPlantaComponent {
     nota: 0,
     evaluador: '',
     idrol: '',
-    estado: 0
+    estado: 0,
+    nota_aseg: '',
+    ev_aseg: '',
+    nota_campo: '',
+    ev_campo: '',
+    sin_reporte: '',
+    campo_prom: '',
+    nota_acopio: '',
+    ev_acopio: '',
+    nota_final: '',
   }
 
   evaluacion: Evaluaciones = {
@@ -72,8 +81,9 @@ export class CalidadPlantaComponent {
     this.usuario = await this.dexieService.showUsuario()
   }
 
-  async ListarTrabajadores() {
+  async ListarTrabajadores(alerta: boolean = false) {
     this.trabajadores = await this.dexieService.showTrabajadores()
+    if(alerta) this.alertService.showAlert('Exito!', 'Trabajadores listados con exito', 'success');
   }
 
   async ListarEvaluaciones() {
@@ -176,18 +186,20 @@ export class CalidadPlantaComponent {
   }
 
   formatoNotasEvaluacion() {
-    const notas = this.evaluacion.detalle.map((item:any)=> {
-      return {
-        idevaluacion: item.idevaluacion,
-        ruc: item.ruc,
-        fecha: item.fecha,
-        dni: item.dni,
-        nota: item.nota,
-        evaluador: item.evaluador,
-        idrol: item.idrol
-      }
-    })
-    return notas
+    const notas = this.evaluacion.detalle
+      .filter((item: any) => item.estado === 0) // 👈 filtra por estado 0
+      .map((item: any) => {
+        return {
+          idevaluacion: item.idevaluacion,
+          ruc: item.ruc,
+          fecha: item.fecha,
+          dni: item.dni,
+          nota: item.nota,
+          evaluador: item.evaluador,
+          idrol: item.idrol
+        }
+      });
+    return notas;
   }
 
   toggleSection(section: number) {
@@ -219,6 +231,7 @@ export class CalidadPlantaComponent {
     this.notaPersona.dni = this.evaluacion.dni;
     this.notaPersona.evaluador = this.usuario.documentoidentidad;
     this.notaPersona.idrol = this.obtenerRol(this.usuario.idrol);
+    this.notaPersona.estado = 0;
     this.evaluacion.detalle.push(this.notaPersona)
     await this.dexieService.saveEvaluacion(this.evaluacion)
     this.alertService.showAlert('Exito!', 'Nota guardada', 'success');
@@ -234,7 +247,16 @@ export class CalidadPlantaComponent {
       nota: 0,
       evaluador: '',
       idrol: '',
-      estado: 0
+      estado: 0,
+      nota_aseg: '',
+      ev_aseg: '',
+      nota_campo: '',
+      ev_campo: '',
+      sin_reporte: '',
+      campo_prom: '',
+      nota_acopio: '',
+      ev_acopio: '',
+      nota_final: '',
     }
   }
 

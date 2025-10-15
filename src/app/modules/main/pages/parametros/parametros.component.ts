@@ -93,7 +93,6 @@ export class ParametrosComponent {
         if (!!resp && resp.length) {
           await this.dexieService.saveFundos(resp);
           await this.ListarFundos();
-          this.alertService.cerrarModalCarga()
           this.alertService.showAlert('Exito!', 'Sincronizado con exito', 'success');
         }
       })
@@ -109,6 +108,7 @@ export class ParametrosComponent {
       const trabajadores = this.maestrasService.getTrabajadores([{idempresa: this.usuario?.idempresa}])
       trabajadores.subscribe(async (resp: any) => {
         if(!!resp && resp.length) {
+          this.alertService.cerrarModalCarga()
           await this.dexieService.saveTrabajadores(resp)
         }
       });

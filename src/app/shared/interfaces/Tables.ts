@@ -69,4 +69,13 @@ export interface NotaPersona {
     evaluador: string;
     idrol: string;
     estado: number;
+    nota_aseg: string;
+    ev_aseg: string;
+    nota_campo: string;
+    ev_campo: string;
+    sin_reporte: string;
+    campo_prom: string;
+    nota_acopio: string;
+    ev_acopio: string;
+    nota_final: string;
 }

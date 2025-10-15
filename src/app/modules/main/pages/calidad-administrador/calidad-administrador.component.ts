@@ -8,14 +8,14 @@ import { UtilsService } from '@/app/shared/utils/utils.service';
 import { CalidadService } from '../../services/calidad.service';
 import { NotaPersona, Evaluaciones } from '@/app/shared/interfaces/Tables';
 import { Modal } from 'bootstrap';
+
 @Component({
-  selector: 'app-calidad-aseguramiento',
+  selector: 'app-calidad-administrador',
   imports: [CommonModule, FormsModule, TableModule],
-  templateUrl: './calidad-aseguramiento.component.html',
-  styleUrl: './calidad-aseguramiento.component.scss'
+  templateUrl: './calidad-administrador.component.html',
+  styleUrl: './calidad-administrador.component.scss'
 })
-export class CalidadAseguramientoComponent {
-  
+export class CalidadAdministradorComponent {
   @ViewChild('modalNota') modalNota!: ElementRef;
   modalNotaInstance!: Modal;
   @ViewChild('dniInput') dniInputRef!: ElementRef<HTMLInputElement>;
@@ -186,20 +186,18 @@ export class CalidadAseguramientoComponent {
   }
 
   formatoNotasEvaluacion() {
-    const notas = this.evaluacion.detalle
-      .filter((item: any) => item.estado === 0)
-      .map((item: any) => {
-        return {
-          idevaluacion: item.idevaluacion,
-          ruc: item.ruc,
-          fecha: item.fecha,
-          dni: item.dni,
-          nota: item.nota,
-          evaluador: item.evaluador,
-          idrol: item.idrol
-        }
-      });
-    return notas;
+    const notas = this.evaluacion.detalle.map((item:any)=> {
+      return {
+        idevaluacion: item.idevaluacion,
+        ruc: item.ruc,
+        fecha: item.fecha,
+        dni: item.dni,
+        nota: item.nota,
+        evaluador: item.evaluador,
+        idrol: item.idrol
+      }
+    })
+    return notas
   }
 
   toggleSection(section: number) {
@@ -231,7 +229,6 @@ export class CalidadAseguramientoComponent {
     this.notaPersona.dni = this.evaluacion.dni;
     this.notaPersona.evaluador = this.usuario.documentoidentidad;
     this.notaPersona.idrol = this.obtenerRol(this.usuario.idrol);
-    this.notaPersona.estado = 0;
     this.evaluacion.detalle.push(this.notaPersona)
     await this.dexieService.saveEvaluacion(this.evaluacion)
     this.alertService.showAlert('Exito!', 'Nota guardada', 'success');
