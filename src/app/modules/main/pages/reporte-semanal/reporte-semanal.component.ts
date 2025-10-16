@@ -299,7 +299,7 @@ export class ReporteSemanalComponent {
         });
       });
 
-      const nombreArchivo = `reporte_viajes_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const nombreArchivo = `reporte_calidad_${new Date().toISOString().slice(0, 10)}.xlsx`;
       workbook.xlsx.writeBuffer().then(buffer => {
         const blob = new Blob([buffer], { type: 'application/octet-stream' });
         FileSaver.saveAs(blob, nombreArchivo);
