@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild,ChangeDetectorRef } from '@angular/core';
+import { Component, ElementRef, ViewChild,ChangeDetectorRef, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TableModule } from 'primeng/table';
@@ -8,6 +8,7 @@ import { UtilsService } from '@/app/shared/utils/utils.service';
 import { CalidadService } from '../../services/calidad.service';
 import { NotaPersona, Evaluaciones } from '@/app/shared/interfaces/Tables';
 import { Modal } from 'bootstrap';
+import { BrowserQRCodeReader } from '@zxing/library';
 @Component({
   selector: 'app-calidad-aseguramiento',
   imports: [CommonModule, FormsModule, TableModule],
@@ -15,10 +16,15 @@ import { Modal } from 'bootstrap';
   styleUrl: './calidad-aseguramiento.component.scss'
 })
 export class CalidadAseguramientoComponent {
-  
+  @ViewChild('videoElement') videoElement!: ElementRef<HTMLVideoElement>;
+  @ViewChild('beepSound') beepSound!: ElementRef<HTMLAudioElement>;
   @ViewChild('modalNota') modalNota!: ElementRef;
   modalNotaInstance!: Modal;
   @ViewChild('dniInput') dniInputRef!: ElementRef<HTMLInputElement>;
+  @ViewChild('modalScanner') modalScanner!: ElementRef;
+  modalScannerInstance!: Modal;
+
+  @Input() enableScanner: boolean = false;
 
   usuario: any;
   activeSection: number | null = 1;
@@ -26,7 +32,7 @@ export class CalidadAseguramientoComponent {
   search: string = '';
   currentDate: Date = new Date();
   /***/
-  trabajadores: any[] = [];
+  // trabajadores: any[] = [];
   evaluaciones: Evaluaciones[] = [];
   /***/
   notaPersona: NotaPersona = {
@@ -58,6 +64,13 @@ export class CalidadAseguramientoComponent {
     detalle: []
   }
 
+  // scannerControls: IScannerControls | null = null;
+  qrCodeReader = new BrowserQRCodeReader();
+  qrResult: string = '';
+  lastResult: string = '';
+  cameraError = false;
+  cameraStream: MediaStream | null = null;
+
   constructor(
     private utilsService: UtilsService,
     private dexieService: DexieService,
@@ -68,11 +81,12 @@ export class CalidadAseguramientoComponent {
 
   ngAfterViewInit() {
     this.modalNotaInstance = new Modal(this.modalNota.nativeElement);
+    this.modalScannerInstance = new Modal(this.modalScanner.nativeElement);
   }
 
   async ngOnInit() {
     await this.ObtenerUsuario()
-    await this.ListarTrabajadores()
+    // await this.ListarTrabajadores()
     await this.ListarEvaluaciones()
     await this.iniciarNota()
   }
@@ -81,13 +95,31 @@ export class CalidadAseguramientoComponent {
     this.usuario = await this.dexieService.showUsuario()
   }
 
-  async ListarTrabajadores(alerta: boolean = false) {
-    this.trabajadores = await this.dexieService.showTrabajadores()
-    if(alerta) this.alertService.showAlert('Exito!', 'Trabajadores listados con exito', 'success');
+  // async ListarTrabajadores(alerta: boolean = false) {
+  //   this.trabajadores = await this.dexieService.showTrabajadores()
+  //   if(alerta) this.alertService.showAlert('Exito!', 'Trabajadores listados con exito', 'success');
+  // }
+
+  async ListarEvaluaciones(alerta: boolean = false) {
+    if(alerta) {
+      this.alertService.mostrarModalCarga()
+      const notas = this.calidadService.getNotasCampo([{ ruc: this.usuario.ruc, idrol: this.obtenerRol() }])
+      notas.subscribe(async (resp: any) => {
+        if(!!resp && resp.length) {
+          await this.dexieService.saveEvaluaciones(resp)
+          this.alertService.showAlert('Exito!', 'Evaluaciones listadas con exito', 'success');
+        }
+      });
+    }
+    this.evaluaciones = await this.dexieService.showEvaluaciones()
   }
 
-  async ListarEvaluaciones() {
-    this.evaluaciones = await this.dexieService.showEvaluaciones()
+  obtenerRol() {
+    if(this.usuario.idrol.includes('SUCAL')) return 'SUCAL'
+    if(this.usuario.idrol.includes('ASCAL')) return 'ASCAL'
+    if(this.usuario.idrol.includes('PLCAL')) return 'PLCAL'
+    if(this.usuario.idrol.includes('ADCAL')) return 'ADCAL'
+    return ''
   }
 
   async iniciarNota() {
@@ -104,16 +136,11 @@ export class CalidadAseguramientoComponent {
   async buscarPersona(alerta: boolean =  false) {
     this.clearEvaluacion()
     if(this.search != '') {
-      const trabajadorbd = this.trabajadores.find((item:any)=> item.nrodocumento.trim() == this.search.trim())
+      const trabajadorbd = this.evaluaciones.find((item:any)=> item.dni.trim() == this.search.trim())
       if(trabajadorbd) {
-        if(trabajadorbd.bloqueado == 1) {
-          this.search = ''
-          if(alerta) this.alertService.showAlertAcept('Alerta!',`Usuario restringido`,'warning')
-        } else {
-          this.search = ''
-          this.llenarEvaluacion(trabajadorbd)
-          this.alertService.showAlert('Exito!', 'Encontrado con exito', 'success');
-        }
+        this.search = ''
+        this.llenarEvaluacion(trabajadorbd)
+        this.alertService.showAlert('Exito!', 'Encontrado con exito', 'success');
       } else {
         if(alerta) this.alertService.showAlert('Alerta!','Usuario no encontrado','warning')
         this.search = ''
@@ -143,16 +170,15 @@ export class CalidadAseguramientoComponent {
   }
 
   async llenarEvaluacion(t: any) {
-    const evaluaciones = await this.dexieService.showEvaluaciones()
-    const evaluacion = evaluaciones.find( (e: any) => e.dni == t.nrodocumento ) 
+    const evaluacion = this.evaluaciones.find( (e: any) => e.dni == t.dni ) 
     if(evaluacion) {
       this.evaluacion = evaluacion
     } else {
       this.evaluacion = {
-        id: t.ruc+t.nrodocumento,
+        id: t.ruc+t.dni,
         ruc: t.ruc,
-        dni: t.nrodocumento,
-        cosechador: t.nombre,
+        dni: t.dni,
+        cosechador: t.cosechador,
         promedio: 0,
         detalle: []
       }
@@ -187,7 +213,7 @@ export class CalidadAseguramientoComponent {
 
   formatoNotasEvaluacion() {
     const notas = this.evaluacion.detalle
-      .filter((item: any) => item.estado === 0)
+      .filter((item: any) => item.estado === 0) // 👈 filtra por estado 0
       .map((item: any) => {
         return {
           idevaluacion: item.idevaluacion,
@@ -202,16 +228,17 @@ export class CalidadAseguramientoComponent {
     return notas;
   }
 
+
   toggleSection(section: number) {
     this.activeSection = this.activeSection == section ? null : section;
   }
 
   async agregarNota() {
-    if(this.evaluacion.dni == '') {
+    if(this.evaluacion.dni.trim() == '') {
       this.alertService.showAlert('Alerta!', 'Debe ingresar un dni', 'warning');
       return;
     }
-    if(this.evaluacion.detalle.length>0 && this.validarNotaHoy()) {
+    if(this.evaluacion?.detalle?.length>0 && this.validarNotaHoy()) {
       this.alertService.showAlert('Alerta!', 'Ya se registro una nota', 'warning');
       return;
     }
@@ -219,10 +246,14 @@ export class CalidadAseguramientoComponent {
   }
 
   validarNotaHoy() {
-    const fechaHoy = this.utilsService.formatDate3(new Date())
-    const notaHoy = this.evaluacion.detalle.find((item:any)=> item.fecha == fechaHoy)
-    return notaHoy
+    const fechaHoy = this.utilsService.formatDate3(new Date());
+    if (!this.evaluacion?.detalle || !Array.isArray(this.evaluacion.detalle)) {
+      return false;
+    }
+    const notaHoy = this.evaluacion.detalle.find((item: any) => item.fecha == fechaHoy);
+    return notaHoy;
   }
+
 
   async guardarNota() {
     this.modalNotaInstance.hide();
@@ -230,12 +261,16 @@ export class CalidadAseguramientoComponent {
     this.notaPersona.ruc = this.usuario.ruc;
     this.notaPersona.dni = this.evaluacion.dni;
     this.notaPersona.evaluador = this.usuario.documentoidentidad;
-    this.notaPersona.idrol = this.obtenerRol(this.usuario.idrol);
+    this.notaPersona.idrol = this.obtenerRol();
     this.notaPersona.estado = 0;
+    if (!Array.isArray(this.evaluacion.detalle)) {
+      this.evaluacion.detalle = [];
+    }
     this.evaluacion.detalle.push(this.notaPersona)
     await this.dexieService.saveEvaluacion(this.evaluacion)
     this.alertService.showAlert('Exito!', 'Nota guardada', 'success');
     this.clearNota()
+    await this.iniciarNota()
   }
 
   clearNota() {
@@ -260,20 +295,6 @@ export class CalidadAseguramientoComponent {
     }
   }
 
-  obtenerRol(idrol: string) {
-   switch (idrol) {
-    case 'SUCAL': {
-      return 'SUCAL';
-    }
-    case 'ADCAL': {
-      return 'ADCAL';
-    }
-    default: {
-      return 'SUCAL';
-    }
-   } 
-  }
-
   validarRango(event: any) {
     let valor = Number(event.target.value);
   
@@ -286,5 +307,99 @@ export class CalidadAseguramientoComponent {
 
   detectarDia(fecha: string) {
     return this.utilsService.formatoNombreDia(fecha);
+  }
+
+  abrirModal() {
+    this.modalScannerInstance.show();
+    this.startCamera();
+  }
+
+  async startCamera() {
+    try {
+      if (this.cameraStream) {
+        this.stopCamera();
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' }
+      });
+
+      this.cameraStream = stream;
+      const video = this.videoElement.nativeElement;
+
+      if (video.srcObject !== stream) {
+        video.srcObject = stream;
+      }
+      await video.play();
+
+      this.scanQRCode();
+    } catch (err) {
+      console.error('Error accediendo a la cámara:', err);
+      this.cameraError = true;
+    }
+  }
+
+  async scanQRCode() {
+    try {
+      await this.qrCodeReader.decodeFromVideoDevice(
+        '',
+        this.videoElement.nativeElement,
+        (result: any, err: any) => {
+          if (result) {
+            this.playBeep();
+            this.onCodeResult(result.text);
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error iniciando el scanner:', error);
+    }
+  }
+
+  async onCodeResult(result: any ='') {
+    const { dniExtraido, mensaje } = this.validarQrDni(result);
+    if(dniExtraido) {
+      this.search = dniExtraido
+      await this.buscarPersona(false)
+    } else {
+      this.alertService.showAlertAcept('Alerta', 'Ocurrio un error: ['+mensaje+']','warning');
+    }
+    this.closeModalCamara();
+  }
+
+  closeModalCamara(): void {
+    this.stopCamera();
+    this.modalScannerInstance.hide();
+  }
+
+  validarQrDni(resultado: any): { dniExtraido: string | null, mensaje: string } {
+    const texto = resultado?.toString().trim() ?? '';
+    const indiceD = texto.indexOf('D');
+    const indiceC = texto.indexOf('C');
+
+    if (indiceD === -1 || indiceC === -1 || indiceC < indiceD) {
+      return { dniExtraido: null, mensaje: 'estructura qr no valida' };
+    }
+  
+    const dniExtraido = texto.substring(indiceD + 1, indiceC).trim();
+    return { dniExtraido, mensaje: dniExtraido || 'estructura qr no valida' };
+  }
+  
+
+  stopCamera() {
+    this.qrCodeReader.reset();
+    if (this.cameraStream) {
+      this.cameraStream.getTracks().forEach(track => track.stop());
+      this.cameraStream = null;
+    }
+    const video = this.videoElement.nativeElement;
+    video.pause();
+    video.srcObject = null;
+  }
+
+  playBeep() {
+    const beep = this.beepSound.nativeElement;
+    beep.currentTime = 0;
+    beep.play();
   }
 }

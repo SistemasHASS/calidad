@@ -93,7 +93,6 @@ export class ParametrosComponent {
         if (!!resp && resp.length) {
           await this.dexieService.saveFundos(resp);
           await this.ListarFundos();
-          this.alertService.showAlert('Exito!', 'Sincronizado con exito', 'success');
         }
       })
 
@@ -105,18 +104,19 @@ export class ParametrosComponent {
         }
       });
 
-      const trabajadores = this.maestrasService.getTrabajadores([{idempresa: this.usuario?.idempresa}])
-      trabajadores.subscribe(async (resp: any) => {
-        if(!!resp && resp.length) {
-          this.alertService.cerrarModalCarga()
-          await this.dexieService.saveTrabajadores(resp)
-        }
-      });
+      // const trabajadores = this.maestrasService.getTrabajadores([{idempresa: this.usuario?.idempresa}])
+      // trabajadores.subscribe(async (resp: any) => {
+      //   if(!!resp && resp.length) {
+      //     this.alertService.cerrarModalCarga()
+      //     await this.dexieService.saveTrabajadores(resp)
+      //   }
+      // });
 
       const notas = this.calidadService.getNotasCampo([{ ruc: this.usuario.ruc, idrol: this.obtenerRol() }])
       notas.subscribe(async (resp: any) => {
         if(!!resp && resp.length) {
           await this.dexieService.saveEvaluaciones(resp)
+          this.alertService.showAlert('Exito!', 'Sincronizado con exito', 'success');
         }
       });
     } catch (error: any) {

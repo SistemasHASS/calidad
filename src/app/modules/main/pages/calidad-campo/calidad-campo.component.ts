@@ -33,7 +33,7 @@ export class CalidadCampoComponent {
   search: string = '';
   currentDate: Date = new Date();
   /***/
-  trabajadores: any[] = [];
+  // trabajadores: any[] = [];
   evaluaciones: Evaluaciones[] = [];
   /***/
   notaPersona: NotaPersona = {
@@ -87,7 +87,7 @@ export class CalidadCampoComponent {
 
   async ngOnInit() {
     await this.ObtenerUsuario()
-    await this.ListarTrabajadores()
+    // await this.ListarTrabajadores()
     await this.ListarEvaluaciones()
     await this.iniciarNota()
   }
@@ -96,13 +96,31 @@ export class CalidadCampoComponent {
     this.usuario = await this.dexieService.showUsuario()
   }
 
-  async ListarTrabajadores(alerta: boolean = false) {
-    this.trabajadores = await this.dexieService.showTrabajadores()
-    if(alerta) this.alertService.showAlert('Exito!', 'Trabajadores listados con exito', 'success');
+  // async ListarTrabajadores(alerta: boolean = false) {
+  //   this.trabajadores = await this.dexieService.showTrabajadores()
+  //   if(alerta) this.alertService.showAlert('Exito!', 'Trabajadores listados con exito', 'success');
+  // }
+
+  async ListarEvaluaciones(alerta: boolean = false) {
+    if(alerta) {
+      this.alertService.mostrarModalCarga()
+      const notas = this.calidadService.getNotasCampo([{ ruc: this.usuario.ruc, idrol: this.obtenerRol() }])
+      notas.subscribe(async (resp: any) => {
+        if(!!resp && resp.length) {
+          await this.dexieService.saveEvaluaciones(resp)
+          this.alertService.showAlert('Exito!', 'Evaluaciones listadas con exito', 'success');
+        }
+      });
+    }
+    this.evaluaciones = await this.dexieService.showEvaluaciones()
   }
 
-  async ListarEvaluaciones() {
-    this.evaluaciones = await this.dexieService.showEvaluaciones()
+  obtenerRol() {
+    if(this.usuario.idrol.includes('SUCAL')) return 'SUCAL'
+    if(this.usuario.idrol.includes('ASCAL')) return 'ASCAL'
+    if(this.usuario.idrol.includes('PLCAL')) return 'PLCAL'
+    if(this.usuario.idrol.includes('ADCAL')) return 'ADCAL'
+    return ''
   }
 
   async iniciarNota() {
@@ -119,16 +137,11 @@ export class CalidadCampoComponent {
   async buscarPersona(alerta: boolean =  false) {
     this.clearEvaluacion()
     if(this.search != '') {
-      const trabajadorbd = this.trabajadores.find((item:any)=> item.nrodocumento.trim() == this.search.trim())
+      const trabajadorbd = this.evaluaciones.find((item:any)=> item.dni.trim() == this.search.trim())
       if(trabajadorbd) {
-        if(trabajadorbd.bloqueado == 1) {
-          this.search = ''
-          if(alerta) this.alertService.showAlertAcept('Alerta!',`Usuario restringido`,'warning')
-        } else {
-          this.search = ''
-          this.llenarEvaluacion(trabajadorbd)
-          this.alertService.showAlert('Exito!', 'Encontrado con exito', 'success');
-        }
+        this.search = ''
+        this.llenarEvaluacion(trabajadorbd)
+        this.alertService.showAlert('Exito!', 'Encontrado con exito', 'success');
       } else {
         if(alerta) this.alertService.showAlert('Alerta!','Usuario no encontrado','warning')
         this.search = ''
@@ -158,16 +171,15 @@ export class CalidadCampoComponent {
   }
 
   async llenarEvaluacion(t: any) {
-    const evaluaciones = await this.dexieService.showEvaluaciones()
-    const evaluacion = evaluaciones.find( (e: any) => e.dni == t.nrodocumento ) 
+    const evaluacion = this.evaluaciones.find( (e: any) => e.dni == t.dni ) 
     if(evaluacion) {
       this.evaluacion = evaluacion
     } else {
       this.evaluacion = {
-        id: t.ruc+t.nrodocumento,
+        id: t.ruc+t.dni,
         ruc: t.ruc,
-        dni: t.nrodocumento,
-        cosechador: t.nombre,
+        dni: t.dni,
+        cosechador: t.cosechador,
         promedio: 0,
         detalle: []
       }
@@ -185,9 +197,7 @@ export class CalidadCampoComponent {
     }
     const confirmacion = await this.alertService.showConfirm('Confirmación', '¿Desea enviar los datos?', 'warning');
     if(confirmacion) {
-      console.log('evaluacion vale: ', this.evaluacion)
       const formatoNotas = this.formatoNotasEvaluacion()
-      console.log('notas vale: ', formatoNotas)
       this.calidadService.registrarNota(formatoNotas).subscribe((res:any)=> {
         if(res[0].errorgeneral == 0) {
           for(let i = 0; i < this.evaluacion.detalle.length; i++) {
@@ -225,11 +235,11 @@ export class CalidadCampoComponent {
   }
 
   async agregarNota() {
-    if(this.evaluacion.dni == '') {
+    if(this.evaluacion.dni.trim() == '') {
       this.alertService.showAlert('Alerta!', 'Debe ingresar un dni', 'warning');
       return;
     }
-    if(this.evaluacion.detalle.length>0 && this.validarNotaHoy()) {
+    if(this.evaluacion?.detalle?.length>0 && this.validarNotaHoy()) {
       this.alertService.showAlert('Alerta!', 'Ya se registro una nota', 'warning');
       return;
     }
@@ -237,10 +247,14 @@ export class CalidadCampoComponent {
   }
 
   validarNotaHoy() {
-    const fechaHoy = this.utilsService.formatDate3(new Date())
-    const notaHoy = this.evaluacion.detalle.find((item:any)=> item.fecha == fechaHoy)
-    return notaHoy
+    const fechaHoy = this.utilsService.formatDate3(new Date());
+    if (!this.evaluacion?.detalle || !Array.isArray(this.evaluacion.detalle)) {
+      return false;
+    }
+    const notaHoy = this.evaluacion.detalle.find((item: any) => item.fecha == fechaHoy);
+    return notaHoy;
   }
+
 
   async guardarNota() {
     this.modalNotaInstance.hide();
@@ -248,12 +262,16 @@ export class CalidadCampoComponent {
     this.notaPersona.ruc = this.usuario.ruc;
     this.notaPersona.dni = this.evaluacion.dni;
     this.notaPersona.evaluador = this.usuario.documentoidentidad;
-    this.notaPersona.idrol = this.obtenerRol(this.usuario.idrol);
+    this.notaPersona.idrol = this.obtenerRol();
     this.notaPersona.estado = 0;
+    if (!Array.isArray(this.evaluacion.detalle)) {
+      this.evaluacion.detalle = [];
+    }
     this.evaluacion.detalle.push(this.notaPersona)
     await this.dexieService.saveEvaluacion(this.evaluacion)
     this.alertService.showAlert('Exito!', 'Nota guardada', 'success');
     this.clearNota()
+    await this.iniciarNota()
   }
 
   clearNota() {
@@ -276,20 +294,6 @@ export class CalidadCampoComponent {
       ev_acopio: '',
       nota_final: '',
     }
-  }
-
-  obtenerRol(idrol: string) {
-   switch (idrol) {
-    case 'SUCAL': {
-      return 'SUCAL';
-    }
-    case 'ADCAL': {
-      return 'ADCAL';
-    }
-    default: {
-      return 'SUCAL';
-    }
-   } 
   }
 
   validarRango(event: any) {

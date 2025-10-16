@@ -7,7 +7,7 @@
             <span class="label fw-bold me-2">Fecha actual:</span>
             <span class="value me-3">{{ currentDate | date:'dd/MM/yyyy' }}</span>
           </div>
-          <button type="button" (click)="ListarTrabajadores(true)" class="btn btn-primary align-self-end">
+          <button type="button" (click)="ListarEvaluaciones(true)" class="btn btn-primary align-self-end">
             <i class='icon icon-sync'></i>
           </button>
         </div>
@@ -68,31 +68,33 @@
     </legend>
     <div *ngIf="activeSection === 1">
       <div class="table-responsive p-0">
-        <div *ngIf="evaluacion.detalle.length==0" class="alert alert-warning py-2 mb-3 d-flex align-items-center text-center">
-          <span class="text-center">Sin registro de notas</span>
-        </div>
-        <table *ngIf="evaluacion.detalle.length>0" class="table table-hover">
-          <thead>
-            <tr class="bg-primary text-white">
-              <th scope="col" class="text-center p-1">#</th>
-              <th scope="col" class="text-center p-1">Dia</th>
-              <th scope="col" class="text-center p-1">Fecha</th>
-              <th scope="col" class="text-center p-1">Nota</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr [ngClass]="{
-              'enviado': nota.estado, 
-              'noenviado': !nota.estado 
-              }" *ngFor="let nota of evaluacion.detalle; let i = index">
-              <td scope="row" class="text-center p-1">{{ i+1 }}</td>
-              <td class="text-center p-1">{{ detectarDia(nota.fecha) }}</td>
-              <td class="text-left p-1">{{ nota.fecha }}</td>
-              <td class="text-center p-1">{{ nota.nota }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div *ngIf="!evaluacion?.detalle || evaluacion.detalle.length === 0" 
+          class="alert alert-warning py-2 mb-3 d-flex align-items-center text-center">
+        <span class="text-center">Sin registro de notas</span>
       </div>
+
+      <table *ngIf="evaluacion?.detalle && evaluacion.detalle.length > 0" 
+            class="table table-hover">
+        <thead>
+          <tr class="bg-primary text-white">
+            <th scope="col" class="text-center p-1">#</th>
+            <th scope="col" class="text-center p-1">Día</th>
+            <th scope="col" class="text-center p-1">Fecha</th>
+            <th scope="col" class="text-center p-1">Nota</th>
+            <th scope="col" class="text-center p-1">Evaluador</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let nota of evaluacion.detalle; let i = index"
+              [ngClass]="{ 'enviado': nota.estado, 'noenviado': !nota.estado }">
+            <td class="text-center p-1">{{ i + 1 }}</td>
+            <td class="text-center p-1">{{ detectarDia(nota.fecha) }}</td>
+            <td class="text-left p-1">{{ nota.fecha }}</td>
+            <td class="text-center p-1">{{ nota.nota }}</td>
+            <td class="text-center p-1">{{ nota.evaluador }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
   <div class="row ">
